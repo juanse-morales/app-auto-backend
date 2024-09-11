@@ -28,7 +28,7 @@ class AutoController extends Controller
             'name' => 'required|max:25|unique:autos',
             'modelo' => 'required|max:25',
             'marca' => 'required|max:25',
-            'pais' => 'max:45',
+            'pais' => 'required|max:45',
         ]);
 
         if ($validator->fails()) {
@@ -166,10 +166,10 @@ class AutoController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'name' => 'required|max:25|unique:autos',
-            'modelo' => 'required|max:25',
-            'marca' => 'required|max:25',
-            'pais' => 'required|max:45'
+            'name' => 'max:25|unique:autos',
+            'modelo' => 'max:25',
+            'marca' => 'max:25',
+            'pais' => 'max:45'
         ]);
 
         if ($validator->fails()) {
