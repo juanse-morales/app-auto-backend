@@ -17,8 +17,7 @@ return new class extends Migration
             $table->string('modelo');
             $table->string('marca');
             $table->string('pais');
-            $table->timestamp('fechacreate')->useCurrent();
-            $table->timestamp('fechaupdate')->useCurrent();
+            $table->timestamps();
         });
     }
 
