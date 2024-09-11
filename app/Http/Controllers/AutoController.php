@@ -153,5 +153,59 @@ class AutoController extends Controller
         return response()->json($data, 200);
     }
 
-    
+    public function updatePartial(Request $request, $id)
+    {
+        $auto = Auto::find($id);
+
+        if (!$auto) {
+            $data = [
+                'message' => 'Auto no encontrado',
+                'status' => 404
+            ];
+            return response()->json($data, 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|max:25|unique:autos',
+            'modelo' => 'required|max:25',
+            'marca' => 'required|max:25',
+            'pais' => 'required|max:45'
+        ]);
+
+        if ($validator->fails()) {
+            $data = [
+                'message' => 'Error en la validación de los datos',
+                'errors' => $validator->errors(),
+                'status' => 400
+            ];
+            return response()->json($data, 400);
+        }
+
+        if ($request->has('name')) {
+            $auto->name = $request->name;
+        }
+
+        if ($request->has('modelo')) {
+            $auto->modelo = $request->modelo;
+        }
+
+        if ($request->has('marca')) {
+            $auto->marca = $request->marca;
+        }
+
+        if ($request->has('pais')) {
+            $auto->pais = $request->pais;
+        }
+
+        $auto->save();
+
+        $data = [
+            'message' => 'Auto actualizado',
+            'auto' => $auto,
+            'status' => 200
+        ];
+
+        return response()->json($data, 200);
+    }
+
 }
