@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+
 use App\Models\Auto;
+use Illuminate\Support\Facades\Validator;
 
 class AutoController extends Controller
 {
@@ -14,7 +16,7 @@ class AutoController extends Controller
     public function index()
     {
         $autos = Auto::all();
-        return view('autos.index', compact('autos'));
+        return response()->json($autos, 200);
     }
 
     /**
@@ -22,16 +24,38 @@ class AutoController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|max:255',
-            'modelo' => 'required|max:255',
-            'marca' => 'required|max:255',
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|max:25|unique:autos',
+            'modelo' => 'required|max:25',
+            'marca' => 'required|max:25',
+            'pais' => 'max:45',
         ]);
 
-        Auto::create($request->all());
+        if ($validator->fails()) {
+            $data = [
+                'message' => 'Error en la validación de los datos',
+                'errors' => $validator->errors(),
+                'status' => 400
+            ];
+            return response()->json($data, 400);
+        }
+
+        $auto = Auto::create($request->all());
         
-        return redirect()->route('autos.index')
-            ->with('success', 'Auto created successfully.');
+        if (!$auto) {
+            $data = [
+                'message' => 'Error al crear el auto',
+                'status' => 500
+            ];
+            return response()->json($data, 500);
+        }
+
+        $data = [
+            'auto' => $auto,
+            'status' => 201
+        ];
+
+        return response()->json($data, 201);
     }
 
     /**
@@ -40,7 +64,21 @@ class AutoController extends Controller
     public function show(string $id)
     {
         $auto = Auto::find($id);
-        return view('autos.show', compact('auto'));
+
+        if (!$auto) {
+            $data = [
+                'message' => 'Auto no encontrado',
+                'status' => 404
+            ];
+            return response()->json($data, 404);
+        }
+
+        $data = [
+            'auto' => $auto,
+            'status' => 200
+        ];
+
+        return response()->json($data, 200);
     }
 
     /**
@@ -48,17 +86,46 @@ class AutoController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $request->validate([
-            'name' => 'required|max:255',
-            'modelo' => 'required|max:255',
-            'marca' => 'required|max:255',
-        ]);
-        
         $auto = Auto::find($id);
-        $auto->update($request->all());
-        
-        return redirect()->route('autos.index')
-            ->with('success', 'Auto updated successfully.');
+
+        if (!$auto) {
+            $data = [
+                'message' => 'Auto no encontrado',
+                'status' => 404
+            ];
+            return response()->json($data, 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|max:25|unique:autos',
+            'modelo' => 'required|max:25',
+            'marca' => 'required|max:25',
+            'pais' => 'required|max:45'
+        ]);
+
+        if ($validator->fails()) {
+            $data = [
+                'message' => 'Error en la validación de los datos',
+                'errors' => $validator->errors(),
+                'status' => 400
+            ];
+            return response()->json($data, 400);
+        }
+
+        $auto->name = $request->name;
+        $auto->modelo = $request->modelo;
+        $auto->marca = $request->marca;
+        $auto->pais = $request->pais;
+
+        $auto->save();
+
+        $data = [
+            'message' => 'Auto actualizado',
+            'auto' => $auto,
+            'status' => 200
+        ];
+
+        return response()->json($data, 200);
     }
 
     /**
@@ -67,21 +134,24 @@ class AutoController extends Controller
     public function destroy(string $id)
     {
         $auto = Auto::find($id);
-        $auto->delete();
+
+        if (!$auto) {
+            $data = [
+                'message' => 'Auto no encontrado',
+                'status' => 404
+            ];
+            return response()->json($data, 404);
+        }
         
-        return redirect()->route('autos.index')
-            ->with('success', 'Auto deleted successfully');
+        $auto->delete();
+
+        $data = [
+            'message' => 'Auto eliminado',
+            'status' => 200
+        ];
+
+        return response()->json($data, 200);
     }
 
-    /**
-     * Show the form for editing the specified auto.
-     *
-     * @param  int  $id
-     * @return IlluminateHttpResponse
-     */
-    public function edit($id)
-    {
-        $auto = Auto::find($id);
-        return view('autos.edit', compact('auto'));
-    }
+    
 }
